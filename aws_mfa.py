@@ -36,6 +36,9 @@ from datetime import datetime
 program = 'aws-mfa'
 
 class CachedConfig(dict):
+  ''' caches session data until expiry, then prompts for
+      new code.
+  '''
   def __init__(self, ctx, profile, source):
     cache_file = os.path.expanduser(f'~/.aws/.{program}-{profile}.cache')
     os.umask(0o0077) # 0600
@@ -52,6 +55,9 @@ class CachedConfig(dict):
     self.update(data)
 
 def get_profile(ctx, profile):
+  ''' fetches config for named profile, merges it
+      with `default` profile, and returns result.
+  '''
   config_file = os.path.expanduser(f'~/.aws/{program}.yaml')
   try:
     config = yaml.load(open(config_file, 'r'))
@@ -59,20 +65,23 @@ def get_profile(ctx, profile):
     click.echo(f"Unable to open {config_file}, exiting.", err=True)
     sys.exit(1)
 
-  print(profile, config)
   profile_config = config['default']
   profile_config.update(config[profile])
 
   return profile_config
 
+def get_shell():
+  ''' returns name of current shell.
+  '''
+  return psutil.Process().parent().as_dict(attrs=['name'])['name']
+
 shells = [ 'sh', 'bash', 'ksh', 'csh', 'zsh' ]
-shell = psutil.Process().parent().as_dict(attrs=['name'])['name']
 
 @click.command()
 @click.option('--code',     '-c', type=str, metavar='<MFA code>')
 @click.option('--profile',  '-p', type=str, metavar='<profile>', default='default')
 @click.option('--expiry',   '-e', type=int, metavar='<seconds>', default=86400)
-@click.option('--shell',    '-s', type=click.Choice(shells), metavar='<shell name>', default=shell)
+@click.option('--shell',    '-s', type=click.Choice(shells), metavar='<shell name>', default=get_shell())
 @click.option('--account',  '-a', type=str, metavar='<AWS account>')
 @click.option('--username', '-u', type=str, metavar='<AWS username>')
 @click.pass_context
