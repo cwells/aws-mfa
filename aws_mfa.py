@@ -64,11 +64,13 @@ def get_profile(ctx, profile):
 
   return profile_config
 
+shells = [ 'sh', 'bash', 'ksh', 'csh', 'zsh' ]
+
 @click.command()
 @click.option('--code',     '-c', type=str, metavar='<MFA code>')
 @click.option('--profile',  '-p', type=str, metavar='<profile>')
 @click.option('--expiry',   '-e', type=int, metavar='<seconds>')
-@click.option('--shell',    '-s', type=str, metavar='<shell name>')
+@click.option('--shell',    '-s', type=click.Choice(shells), metavar='<shell name>')
 @click.option('--account',  '-a', type=str, metavar='<AWS account>')
 @click.option('--username', '-u', type=str, metavar='<AWS username>')
 @click.pass_context
