@@ -1,7 +1,7 @@
 #!env python3
 
 #
-# Create ~/.aws/aws_mfa.yaml with the following settings:
+# Create ~/.aws/aws-mfa.yaml with the following settings:
 #
 # ---
 # default:
@@ -33,9 +33,10 @@ import psutil
 from functools import partial
 from datetime import datetime
 
+program = 'aws-mfa'
+
 class CachedConfig(dict):
   def __init__(self, ctx, profile, source):
-    program = os.path.splitext(ctx.command_path)[0]
     cache_file = os.path.expanduser(f'~/.aws/.{program}-{profile}.cache')
     os.umask(0o0077) # 0600
     with open(cache_file, 'a+') as cached_data:
@@ -51,7 +52,6 @@ class CachedConfig(dict):
     self.update(data)
 
 def get_profile(ctx, profile):
-  program = os.path.splitext(ctx.command_path)[0]
   config_file = os.path.expanduser(f'~/.aws/{program}.yaml')
   try:
     config = yaml.load(open(config_file, 'r'))
@@ -59,18 +59,20 @@ def get_profile(ctx, profile):
     click.echo(f"Unable to open {config_file}, exiting.", err=True)
     sys.exit(1)
 
+  print(profile, config)
   profile_config = config['default']
   profile_config.update(config[profile])
 
   return profile_config
 
 shells = [ 'sh', 'bash', 'ksh', 'csh', 'zsh' ]
+shell = psutil.Process().parent().as_dict(attrs=['name'])['name']
 
 @click.command()
 @click.option('--code',     '-c', type=str, metavar='<MFA code>')
-@click.option('--profile',  '-p', type=str, metavar='<profile>')
-@click.option('--expiry',   '-e', type=int, metavar='<seconds>')
-@click.option('--shell',    '-s', type=click.Choice(shells), metavar='<shell name>')
+@click.option('--profile',  '-p', type=str, metavar='<profile>', default='default')
+@click.option('--expiry',   '-e', type=int, metavar='<seconds>', default=86400)
+@click.option('--shell',    '-s', type=click.Choice(shells), metavar='<shell name>', default=shell)
 @click.option('--account',  '-a', type=str, metavar='<AWS account>')
 @click.option('--username', '-u', type=str, metavar='<AWS username>')
 @click.pass_context
@@ -105,8 +107,4 @@ def cli(ctx, code, profile, expiry, shell, account, username):
     ]))
 
 if __name__ == '__main__':
-  cli(default_map={
-    'expiry' : 86400,
-    'profile': 'default',
-    'shell'  : psutil.Process().parent().as_dict(attrs=['name'])['name']
-  })
+  cli()

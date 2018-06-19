@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
   name       = 'aws-mfa',
-  version    = '1.1',
+  version    = '1.2',
   py_modules = ['aws_mfa'],
 
   install_requires = open('requirements.txt').readlines(),
