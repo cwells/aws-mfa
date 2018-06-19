@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!env python3
 
 #
 # Create ~/.aws/aws-mfa.yaml with the following settings:
@@ -19,8 +19,12 @@
 #
 # Usage (in terminal):
 #
-#   $ eval $(aws-mfa)                       # will prompt for code
-#   $ eval $(aws-mfa -c 123456 -p staging)  # specify code and profile
+#   $ eval $(aws_mfa)                       # will prompt for code
+#   $ eval $(aws_mfa -c 123456 -p staging)  # specify code and profile
+#
+# For C-shell style shells:
+#
+#   % eval `aws_mfa -C`
 #
 
 import sys
@@ -63,13 +67,14 @@ def get_profile(ctx, profile):
   return profile_config
 
 @click.command()
-@click.option('--code',     '-c', type=str, metavar='<MFA code>')
-@click.option('--profile',  '-p', type=str, metavar='<profile>')
-@click.option('--expiry',   '-e', type=int, metavar='<seconds>')
-@click.option('--account',  '-a', type=str, metavar='<AWS account>')
-@click.option('--username', '-u', type=str, metavar='<AWS username>')
+@click.option('--code',               '-c', type=str,      metavar='<MFA code>')
+@click.option('--cshell/--no-cshell', '-C', default=False, metavar='<C-Shell output>')
+@click.option('--profile',            '-p', type=str,      metavar='<profile>')
+@click.option('--expiry',             '-e', type=int,      metavar='<seconds>')
+@click.option('--account',            '-a', type=str,      metavar='<AWS account>')
+@click.option('--username',           '-u', type=str,      metavar='<AWS username>')
 @click.pass_context
-def cli(ctx, code, profile, expiry, account, username):
+def cli(ctx, code, cshell, profile, expiry, account, username):
   session = boto3.Session(profile_name=profile)
   sts = session.client('sts')
   config = get_profile(ctx, profile)
@@ -87,7 +92,7 @@ def cli(ctx, code, profile, expiry, account, username):
   if token['ResponseMetadata']['HTTPStatusCode'] == 200:
     credentials = token['Credentials']
     print('\n'.join([
-      f'export {k}="{v}"' for (k, v) in {
+      f'setenv {k} "{v}";' if cshell else f'export {k}="{v}"' for (k, v) in {
         'AWS_PROFILE':           config['aws_profile'],
         'AWS_ACCESS_KEY_ID':     credentials['AccessKeyId'],
         'AWS_SECRET_ACCESS_KEY': credentials['SecretAccessKey'],
