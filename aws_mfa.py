@@ -1,7 +1,7 @@
 #!/bin/env python3
 
 #
-# Create ~/.aws/aws-mfa.yaml with the following settings:
+# Create ~/.aws/aws_mfa.yaml with the following settings:
 #
 # ---
 # default:
@@ -28,6 +28,7 @@ import os
 import yaml
 import click
 import boto3
+import psutil
 from functools import partial
 from datetime import datetime
 
@@ -84,10 +85,15 @@ def cli(ctx, code, profile, expiry, account, username):
     )
   )
 
+  shell = psutil.Process().parent().as_dict(attrs=['name'])['name']
+  shell_template = {
+    'csh': 'setenv {var} "{val}"'
+  }.get(shell, 'export {var}="{val}"')
+
   if token['ResponseMetadata']['HTTPStatusCode'] == 200:
     credentials = token['Credentials']
     print('\n'.join([
-      f'export {k}="{v}"' for (k, v) in {
+      str.format(shell_template) for (var, val) in {
         'AWS_PROFILE':           config['aws_profile'],
         'AWS_ACCESS_KEY_ID':     credentials['AccessKeyId'],
         'AWS_SECRET_ACCESS_KEY': credentials['SecretAccessKey'],
