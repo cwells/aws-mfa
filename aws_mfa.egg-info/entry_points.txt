@@ -1,0 +1,4 @@
+
+    [console_scripts]
+    aws-mfa=aws_mfa:cli
+  
