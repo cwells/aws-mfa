@@ -1,0 +1,91 @@
+#!/bin/env python3
+
+#
+# Create ~/.aws/aws-mfa.yaml with the following content:
+#
+# ---
+# default:
+#   account: 1234567890
+#   username: phil@veridiandynamics.com
+#   aws_profile: production
+#   expiry: 86400
+#
+# Every profile inherits values from the `default` profile, and as
+# such, you need only specify the differences in additional profiles:
+#
+# staging:
+#   account: 3456789012
+#   aws_profile: staging
+#
+# Usage (in terminal):
+#
+#   $ eval $(aws-mfa)                       # will prompt for code
+#   $ eval $(aws-mfa -c 123456 -p staging)  # specify code and profile
+#
+
+import os
+import yaml
+import click
+import boto3
+from functools import partial
+from datetime import datetime
+
+class CachedConfig(dict):
+  def __init__(self, cache_file, source):
+    os.umask(0o0077)
+    with open(cache_file, 'a+') as cached_data:
+      cached_data.seek(0)
+      data = yaml.load(cached_data)
+
+      if not data or datetime.utcnow() > data['Credentials']['Expiration']:
+        code = click.prompt('MFA code', type=str, err=True)
+        data = source(TokenCode=code)
+        cached_data.seek(0)
+        cached_data.write(yaml.dump(data))
+
+    self.update(data)
+
+@click.command()
+@click.option('--code',     '-c', type=str, metavar='<MFA code>', help="MFA code displayed on device.")
+@click.option('--profile',  '-p', type=str, metavar='<profile>', help="Configuration profile to use [default].")
+@click.option('--account',  '-a', type=str, metavar='<AWS account ID>', help="AWS account ID. Overrides value in profile.")
+@click.option('--username', '-u', type=str, metavar='<AWS username>', help="AWS username. Overrides value in profile.")
+@click.option('--expiry',   '-e', type=int, metavar='<seconds>', help="Session expiry in seconds [86400]. Overrides value in profile.")
+@click.pass_context
+def cli(ctx, code, profile, account, username, expiry):
+  session = boto3.Session(profile_name=profile)
+  sts = session.client('sts')
+
+  program = os.path.splitext(ctx.command_path)[0]
+  config_file = os.path.expanduser('~/.aws/%s.yaml' % program)
+  config = yaml.load(open(config_file, 'r'))
+  profile_config = config['default']
+  profile_config.update(config[profile])
+
+  device_arn = f"arn:aws:iam::{profile_config['account']}:mfa/{profile_config['username']}"
+
+  token = CachedConfig(
+    os.path.expanduser(f'~/.aws/.{program}-{profile}.cache'),
+    partial(sts.get_session_token,
+      DurationSeconds = expiry,
+      SerialNumber    = device_arn,
+      TokenCode       = code
+    )
+  )
+
+  if token['ResponseMetadata']['HTTPStatusCode'] == 200:
+    credentials = token['Credentials']
+    print('\n'.join([
+      f'export {k}="{v}"' for (k, v) in {
+        'AWS_PROFILE':           profile_config['aws_profile'],
+        'AWS_ACCESS_KEY_ID':     credentials['AccessKeyId'],
+        'AWS_SECRET_ACCESS_KEY': credentials['SecretAccessKey'],
+        'AWS_SESSION_TOKEN':     credentials['SessionToken']
+      }.items()
+    ]))
+
+if __name__ == '__main__':
+  cli(default_map={
+    'profile': 'default',
+    'expiry':  86400
+  })
