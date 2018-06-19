@@ -5,17 +5,17 @@ Python script for managing AWS MFA sessions.
 Python 3.6 or later.
 
 ### Installation
-```
+```bash
 python3 setup.py install --user
 ```
 or for development mode:
-```
+```bash
 python3 setup.py develop --user
 ```
 
 ### Configuration
 Create ~/.aws/aws_mfa.yaml with the following content:
-```
+```yaml
 ---
 default:
   account: 1234567890
@@ -26,7 +26,7 @@ default:
 
 Every profile inherits values from the `default` profile, and as
 such, you need only specify the differences in additional profiles:
-```
+```yaml
 staging:
   account: 3456789012
   aws_profile: staging
@@ -34,7 +34,7 @@ staging:
 
 ### Usage
 In terminal, type:
-```
+```bash
 $ eval $(aws-mfa)                       # will prompt for code
 $ eval $(aws-mfa -c 123456 -p staging)  # specify code and profile
 ```
