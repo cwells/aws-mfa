@@ -19,8 +19,12 @@
 #
 # Usage (in terminal):
 #
-#   $ eval $(aws-mfa)                       # will prompt for code
-#   $ eval $(aws-mfa -c 123456 -p staging)  # specify code and profile
+#   $ eval $(aws_mfa)                       # will prompt for code
+#   $ eval $(aws_mfa -c 123456 -p staging)  # specify code and profile
+#
+# For C-shell style shells:
+#
+#   % eval `aws_mfa -C`
 #
 
 import sys
