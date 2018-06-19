@@ -31,11 +31,15 @@ staging:
 ### Usage
 In terminal, type:
 ```
-  $ eval $(aws-mfa)                       # will prompt for code
-  $ eval $(aws-mfa -c 123456 -p staging)  # specify code and profile
+$ eval $(aws-mfa)                       # will prompt for code
+$ eval $(aws-mfa -c 123456 -p staging)  # specify code and profile
 ```
 
-### Notes
-The program caches the session data, so that if you run it again before
+### Notes on caching
+Session data is cached, so that if you run the program again before
 the expiry has arrived, it will not prompt for the MFA code, but simply
 reuse the existing session.
+
+Cache data is stored under `~/.aws/.aws-mfa.${profile}.cache`. Because
+the profile is used as part of the cache name, multiple concurrent sessions
+with different profiles are supported (in different terminals).
