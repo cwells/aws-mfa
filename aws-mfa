@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!env python3
 
 #
 # Create ~/.aws/aws-mfa.yaml with the following content:
@@ -46,13 +46,14 @@ class CachedConfig(dict):
     self.update(data)
 
 @click.command()
-@click.option('--code',     '-c', type=str, metavar='<MFA code>', help="MFA code displayed on device.")
-@click.option('--profile',  '-p', type=str, metavar='<profile>', help="Configuration profile to use [default].")
-@click.option('--account',  '-a', type=str, metavar='<AWS account ID>', help="AWS account ID. Overrides value in profile.")
-@click.option('--username', '-u', type=str, metavar='<AWS username>', help="AWS username. Overrides value in profile.")
-@click.option('--expiry',   '-e', type=int, metavar='<seconds>', help="Session expiry in seconds [86400]. Overrides value in profile.")
+@click.option('--code',               '-c', type=str,      metavar='<MFA code>', help="MFA code displayed on device.")
+@click.option('--cshell/--no-cshell', '-C', default=False, metavar='<C-Shell output>', help="Output code suitable for C-Shell style shells.")
+@click.option('--profile',            '-p', type=str,       metavar='<profile>', help="Configuration profile to use [default].")
+@click.option('--account',            '-a', type=str,       metavar='<AWS account ID>', help="AWS account ID. Overrides value in profile.")
+@click.option('--username',           '-u', type=str,       metavar='<AWS username>', help="AWS username. Overrides value in profile.")
+@click.option('--expiry',             '-e', type=int,       metavar='<seconds>', help="Session expiry in seconds [86400]. Overrides value in profile.")
 @click.pass_context
-def cli(ctx, code, profile, account, username, expiry):
+def cli(ctx, code, cshell, profile, account, username, expiry):
   session = boto3.Session(profile_name=profile)
   sts = session.client('sts')
 
@@ -76,7 +77,7 @@ def cli(ctx, code, profile, account, username, expiry):
   if token['ResponseMetadata']['HTTPStatusCode'] == 200:
     credentials = token['Credentials']
     print('\n'.join([
-      f'export {k}="{v}"' for (k, v) in {
+      f'setenv {k} "{v}";' if cshell else f'export {k}="{v}"' for (k, v) in {
         'AWS_PROFILE':           profile_config['aws_profile'],
         'AWS_ACCESS_KEY_ID':     credentials['AccessKeyId'],
         'AWS_SECRET_ACCESS_KEY': credentials['SecretAccessKey'],
