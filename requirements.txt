@@ -1,3 +1,4 @@
 boto3>=1.5.20
 click>=6.7
+psutil>=5.4.0
 PyYAML>=3.12

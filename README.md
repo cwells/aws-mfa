@@ -10,7 +10,7 @@ python3 setup.py install --user
 ```
 
 ### Configuration
-Create ~/.aws/aws-mfa.yaml with the following content:
+Create ~/.aws/aws_mfa.yaml with the following content:
 ```
 ---
 default:
