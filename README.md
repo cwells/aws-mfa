@@ -14,7 +14,7 @@ python3 setup.py develop --user
 ```
 
 ### Configuration
-Create ~/.aws/aws_mfa.yaml with the following content:
+Create ~/.aws/aws-mfa.yaml with the following content:
 ```yaml
 ---
 default:
@@ -24,8 +24,8 @@ default:
   expiry: 86400
 ```
 
-Every profile inherits values from the `default` profile, and as
-such, you need only specify the differences in additional profiles:
+Because every profile inherits values from the `default` profile,
+you need only specify the differences in additional profiles:
 ```yaml
 staging:
   account: 3456789012
