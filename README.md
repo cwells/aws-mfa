@@ -8,6 +8,10 @@ Python 3.6 or later.
 ```
 python3 setup.py install --user
 ```
+or for development mode:
+```
+python3 setup.py develop --user
+```
 
 ### Configuration
 Create ~/.aws/aws_mfa.yaml with the following content:
