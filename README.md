@@ -40,6 +40,7 @@ Session data is cached, so that if you run the program again before
 the expiry has arrived, it will not prompt for the MFA code, but simply
 reuse the existing session.
 
-Cache data is stored under `~/.aws/.aws-mfa.${profile}.cache`. Because
-the profile is used as part of the cache name, multiple concurrent sessions
-with different profiles are supported (in different terminals).
+Cache data is stored under `~/.aws/.aws-mfa.${profile}.cache`.
+
+Because the profile is used as part of the cache name, multiple concurrent
+sessions with unique profiles are supported (in different terminals).
