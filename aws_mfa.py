@@ -1,7 +1,7 @@
 #!env python3
 
 #
-# Create ~/.aws/aws-mfa.yaml with the following content:
+# Create ~/.aws/aws-mfa.yaml with the following settings:
 #
 # ---
 # default:
@@ -23,6 +23,7 @@
 #   $ eval $(aws-mfa -c 123456 -p staging)  # specify code and profile
 #
 
+import sys
 import os
 import yaml
 import click
@@ -31,8 +32,10 @@ from functools import partial
 from datetime import datetime
 
 class CachedConfig(dict):
-  def __init__(self, cache_file, source):
-    os.umask(0o0077)
+  def __init__(self, ctx, profile, source):
+    program = os.path.splitext(ctx.command_path)[0]
+    cache_file = os.path.expanduser(f'~/.aws/.{program}-{profile}.cache')
+    os.umask(0o0077) # 0600
     with open(cache_file, 'a+') as cached_data:
       cached_data.seek(0)
       data = yaml.load(cached_data)
@@ -45,28 +48,36 @@ class CachedConfig(dict):
 
     self.update(data)
 
-@click.command()
-@click.option('--code',               '-c', type=str,      metavar='<MFA code>', help="MFA code displayed on device.")
-@click.option('--cshell/--no-cshell', '-C', default=False, metavar='<C-Shell output>', help="Output code suitable for C-Shell style shells.")
-@click.option('--profile',            '-p', type=str,       metavar='<profile>', help="Configuration profile to use [default].")
-@click.option('--account',            '-a', type=str,       metavar='<AWS account ID>', help="AWS account ID. Overrides value in profile.")
-@click.option('--username',           '-u', type=str,       metavar='<AWS username>', help="AWS username. Overrides value in profile.")
-@click.option('--expiry',             '-e', type=int,       metavar='<seconds>', help="Session expiry in seconds [86400]. Overrides value in profile.")
-@click.pass_context
-def cli(ctx, code, cshell, profile, account, username, expiry):
-  session = boto3.Session(profile_name=profile)
-  sts = session.client('sts')
-
+def get_profile(ctx, profile):
   program = os.path.splitext(ctx.command_path)[0]
-  config_file = os.path.expanduser('~/.aws/%s.yaml' % program)
-  config = yaml.load(open(config_file, 'r'))
+  config_file = os.path.expanduser(f'~/.aws/{program}.yaml')
+  try:
+    config = yaml.load(open(config_file, 'r'))
+  except:
+    click.echo(f"Unable to open configuration file {config_file}, exiting.", err=True)
+    sys.exit(1)
+
   profile_config = config['default']
   profile_config.update(config[profile])
 
-  device_arn = f"arn:aws:iam::{profile_config['account']}:mfa/{profile_config['username']}"
+  return profile_config
+
+@click.command()
+@click.option('--code',               '-c', type=str,      metavar='<MFA code>')
+@click.option('--cshell/--no-cshell', '-C', default=False, metavar='<C-Shell output>')
+@click.option('--profile',            '-p', type=str,      metavar='<profile>')
+@click.option('--expiry',             '-e', type=int,      metavar='<seconds>')
+@click.option('--account',            '-a', type=str,      metavar='<AWS account>')
+@click.option('--username',           '-u', type=str,      metavar='<AWS username>')
+@click.pass_context
+def cli(ctx, code, cshell, profile, expiry, account, username):
+  session = boto3.Session(profile_name=profile)
+  sts = session.client('sts')
+  config = get_profile(ctx, profile)
+  device_arn = f"arn:aws:iam::{config['account']}:mfa/{config['username']}"
 
   token = CachedConfig(
-    os.path.expanduser(f'~/.aws/.{program}-{profile}.cache'),
+    ctx, profile,
     partial(sts.get_session_token,
       DurationSeconds = expiry,
       SerialNumber    = device_arn,
@@ -78,7 +89,7 @@ def cli(ctx, code, cshell, profile, account, username, expiry):
     credentials = token['Credentials']
     print('\n'.join([
       f'setenv {k} "{v}";' if cshell else f'export {k}="{v}"' for (k, v) in {
-        'AWS_PROFILE':           profile_config['aws_profile'],
+        'AWS_PROFILE':           config['aws_profile'],
         'AWS_ACCESS_KEY_ID':     credentials['AccessKeyId'],
         'AWS_SECRET_ACCESS_KEY': credentials['SecretAccessKey'],
         'AWS_SESSION_TOKEN':     credentials['SessionToken']
