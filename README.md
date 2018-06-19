@@ -1,6 +1,12 @@
 # aws-mfa
 Python script for managing AWS MFA sessions.
 
+### Installation
+```
+python3 setup.py install --user
+```
+
+### Configuration
 Create ~/.aws/aws-mfa.yaml with the following content:
 ```
 ---
@@ -19,8 +25,14 @@ staging:
   aws_profile: staging
 ```
 
-Usage (in terminal):
+### Usage
+In terminal, type:
 ```
   $ eval $(aws-mfa)                       # will prompt for code
   $ eval $(aws-mfa -c 123456 -p staging)  # specify code and profile
 ```
+
+### Notes
+The program caches the session data, so that if you run it again before
+the expiry has arrived, it will not prompt for the MFA code, but simply
+reuse the existing session.
