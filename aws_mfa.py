@@ -25,6 +25,7 @@
 
 import sys
 import os
+import string
 import yaml
 import click
 import boto3
@@ -67,10 +68,11 @@ def get_profile(ctx, profile):
 @click.option('--code',     '-c', type=str, metavar='<MFA code>')
 @click.option('--profile',  '-p', type=str, metavar='<profile>')
 @click.option('--expiry',   '-e', type=int, metavar='<seconds>')
+@click.option('--shell',    '-s', type=str, metavar='<shell name>')
 @click.option('--account',  '-a', type=str, metavar='<AWS account>')
 @click.option('--username', '-u', type=str, metavar='<AWS username>')
 @click.pass_context
-def cli(ctx, code, profile, expiry, account, username):
+def cli(ctx, code, profile, expiry, shell, account, username):
   session = boto3.Session(profile_name=profile)
   sts = session.client('sts')
   config = get_profile(ctx, profile)
@@ -85,15 +87,14 @@ def cli(ctx, code, profile, expiry, account, username):
     )
   )
 
-  shell = psutil.Process().parent().as_dict(attrs=['name'])['name']
-  shell_template = {
-    'csh': 'setenv {var} "{val}"'
-  }.get(shell, 'export {var}="{val}"')
+  shell_template = string.Template({
+    'csh': 'setenv $var "$val"'
+  }.get(shell, 'export $var="$val"'))
 
   if token['ResponseMetadata']['HTTPStatusCode'] == 200:
     credentials = token['Credentials']
     print('\n'.join([
-      str.format(shell_template) for (var, val) in {
+      shell_template.substitute(var=var, val=val) for (var, val) in {
         'AWS_PROFILE':           config['aws_profile'],
         'AWS_ACCESS_KEY_ID':     credentials['AccessKeyId'],
         'AWS_SECRET_ACCESS_KEY': credentials['SecretAccessKey'],
@@ -103,6 +104,7 @@ def cli(ctx, code, profile, expiry, account, username):
 
 if __name__ == '__main__':
   cli(default_map={
+    'expiry':  86400,
     'profile': 'default',
-    'expiry':  86400
+    'shell':   psutil.Process().parent().as_dict(attrs=['name'])['name']
   })
