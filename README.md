@@ -1,6 +1,9 @@
 # aws-mfa
 Python script for managing AWS MFA sessions.
 
+### Requirements
+Python 3.6 or later.
+
 ### Installation
 ```
 python3 setup.py install --user
