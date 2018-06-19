@@ -1,27 +1,6 @@
 #!env python3
 
-#
-# Create ~/.aws/aws-mfa.yaml with the following settings:
-#
-# ---
-# default:
-#   account: 1234567890
-#   username: phil@veridiandynamics.com
-#   aws_profile: production
-#   expiry: 86400
-#
-# Every profile inherits values from the `default` profile, and as
-# such, you need only specify the differences in additional profiles:
-#
-# staging:
-#   account: 3456789012
-#   aws_profile: staging
-#
-# Usage (in terminal):
-#
-#   $ eval $(aws-mfa)                       # will prompt for code
-#   $ eval $(aws-mfa -c 123456 -p staging)  # specify code and profile
-#
+# Project: https://github.com/cwells/aws-mfa
 
 import sys
 import os
@@ -75,7 +54,7 @@ def get_shell():
   '''
   return psutil.Process().parent().as_dict(attrs=['name'])['name']
 
-shells = [ 'sh', 'bash', 'ksh', 'csh', 'zsh' ]
+shells = [ 'sh', 'bash', 'ksh', 'csh', 'zsh', 'tcsh' ]
 
 @click.command()
 @click.option('--code',     '-c', type=str, metavar='<MFA code>')
@@ -101,7 +80,8 @@ def cli(ctx, code, profile, expiry, shell, account, username):
   )
 
   shell_template = string.Template({
-    'csh': 'setenv $var "$val"'
+    'csh' : 'setenv $var "$val"',
+    'tcsh': 'setenv $var "$val"'
   }.get(shell, 'export $var="$val"'))
 
   if token['ResponseMetadata']['HTTPStatusCode'] == 200:
