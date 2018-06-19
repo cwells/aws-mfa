@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!env python3
 
 #
 # Create ~/.aws/aws_mfa.yaml with the following settings:
