@@ -56,7 +56,7 @@ def get_profile(ctx, profile):
   try:
     config = yaml.load(open(config_file, 'r'))
   except:
-    click.echo(f"Unable to open configuration file {config_file}, exiting.", err=True)
+    click.echo(f"Unable to open {config_file}, exiting.", err=True)
     sys.exit(1)
 
   profile_config = config['default']
@@ -97,16 +97,16 @@ def cli(ctx, code, profile, expiry, shell, account, username):
     credentials = token['Credentials']
     print('\n'.join([
       shell_template.substitute(var=var, val=val) for (var, val) in {
-        'AWS_PROFILE':           config['aws_profile'],
-        'AWS_ACCESS_KEY_ID':     credentials['AccessKeyId'],
+        'AWS_PROFILE'          : config['aws_profile'],
+        'AWS_ACCESS_KEY_ID'    : credentials['AccessKeyId'],
         'AWS_SECRET_ACCESS_KEY': credentials['SecretAccessKey'],
-        'AWS_SESSION_TOKEN':     credentials['SessionToken']
+        'AWS_SESSION_TOKEN'    : credentials['SessionToken']
       }.items()
     ]))
 
 if __name__ == '__main__':
   cli(default_map={
-    'expiry':  86400,
+    'expiry' : 86400,
     'profile': 'default',
-    'shell':   psutil.Process().parent().as_dict(attrs=['name'])['name']
+    'shell'  : psutil.Process().parent().as_dict(attrs=['name'])['name']
   })
