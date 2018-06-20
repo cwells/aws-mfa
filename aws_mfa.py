@@ -79,7 +79,6 @@ def get_command_formats():
 shell_cmd = get_command_formats()
 shells = click.Choice(shell_cmd)
 current_shell = get_shell()
-
 help = {
   'profile': '[%s]' % click.style('default', fg='blue'),
   'expiry' : '[%s]' % click.style('86400', fg='blue'),
