@@ -2,7 +2,6 @@
 
 # Project: https://github.com/cwells/aws-mfa
 
-import sys
 import os
 import yaml
 import click
@@ -14,8 +13,7 @@ from datetime import datetime
 program = 'aws-mfa'
 
 class CachedConfig(dict):
-  ''' caches session data until expiry, then prompts for
-      new code.
+  '''caches session data until expiry, then prompts for new code.
   '''
   def __init__(self, profile, source):
     cache_file = os.path.expanduser(f'~/.aws/.{program}-{profile}.cache')
@@ -32,16 +30,15 @@ class CachedConfig(dict):
 
     self.update(data)
 
-def get_profile(profile):
-  ''' fetches config for named profile, merges it
-      with `default` profile, and returns result.
+def get_profile(ctx, profile):
+  '''fetches config for named profile, merges it
+  with `default` profile, and returns result.
   '''
   config_file = os.path.expanduser(f'~/.aws/{program}.yaml')
   try:
     config = yaml.load(open(config_file, 'r'))
   except:
-    click.echo(f"Unable to open {config_file}, exiting.", err=True)
-    sys.exit(1)
+    ctx.fail(f"Unable to open {config_file}, exiting.")
 
   profile_config = config['default']
   profile_config.update(config[profile])
@@ -49,23 +46,34 @@ def get_profile(profile):
   return profile_config
 
 def get_shell():
-  ''' returns name of current shell.
+  '''returns name of current shell.
   '''
   return psutil.Process().parent().name()
 
-shells = [ 'sh', 'bash', 'ksh', 'csh', 'zsh', 'tcsh' ]
+sh_template = {
+  'export': 'export {var}="{val}"',
+  'setenv': 'setenv {var} "{val}"'
+}
+
+sh_type = {
+  'bash': 'export',
+  'csh':  'setenv',
+  'ksh':  'export',
+  'sh':   'export',
+  'tcsh': 'setenv'
+  'zsh':  'export',
+}
 
 @click.command()
-@click.option('--code',     '-c', type=str, metavar='<MFA code>')
-@click.option('--profile',  '-p', type=str, metavar='<profile>', default='default')
-@click.option('--expiry',   '-e', type=int, metavar='<seconds>', default=86400)
-@click.option('--shell',    '-s', type=click.Choice(shells), metavar='<shell name>', default=get_shell())
-@click.option('--account',  '-a', type=str, metavar='<AWS account>')
-@click.option('--username', '-u', type=str, metavar='<AWS username>')
-def cli(code, profile, expiry, shell, account, username):
+@click.option('--code',    '-c', type=str, metavar='<MFA code>')
+@click.option('--profile', '-p', type=str, metavar='<profile>', default='default')
+@click.option('--expiry',  '-e', type=int, metavar='<seconds>', default=86400)
+@click.option('--shell',   '-s', type=click.Choice(sh_type), metavar='<shell name>', default=get_shell())
+@click.pass_context
+def cli(ctx, code, profile, expiry, shell):
   session = boto3.Session(profile_name=profile)
   sts = session.client('sts')
-  config = get_profile(profile)
+  config = get_profile(ctx, profile)
   device_arn = f"arn:aws:iam::{config['account']}:mfa/{config['username']}"
 
   token = CachedConfig(
@@ -77,15 +85,13 @@ def cli(code, profile, expiry, shell, account, username):
     )
   )
 
-  shell_template = {
-    'csh' : 'setenv {var} "{val}"',
-    'tcsh': 'setenv {var} "{val}"'
-  }.get(shell, 'export {var}="{val}"')
+  template = sh_template[sh_type[shell]]
 
   if token['ResponseMetadata']['HTTPStatusCode'] == 200:
     credentials = token['Credentials']
     print('\n'.join([
-      str.format(shell_template, var=var, val=val) for (var, val) in {
+      str.format(template, var=var, val=val)
+      for var, val in {
         'AWS_PROFILE'          : config['aws_profile'],
         'AWS_ACCESS_KEY_ID'    : credentials['AccessKeyId'],
         'AWS_SECRET_ACCESS_KEY': credentials['SecretAccessKey'],
