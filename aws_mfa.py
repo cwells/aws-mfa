@@ -17,7 +17,7 @@ class CachedConfig(dict):
   ''' caches session data until expiry, then prompts for
       new code.
   '''
-  def __init__(self, ctx, profile, source):
+  def __init__(self, profile, source):
     cache_file = os.path.expanduser(f'~/.aws/.{program}-{profile}.cache')
     os.umask(0o0077) # 0600
     with open(cache_file, 'a+') as cached_data:
@@ -32,7 +32,7 @@ class CachedConfig(dict):
 
     self.update(data)
 
-def get_profile(ctx, profile):
+def get_profile(profile):
   ''' fetches config for named profile, merges it
       with `default` profile, and returns result.
   '''
@@ -51,7 +51,7 @@ def get_profile(ctx, profile):
 def get_shell():
   ''' returns name of current shell.
   '''
-  return psutil.Process().parent().as_dict(attrs=['name'])['name']
+  return psutil.Process().parent().name()
 
 shells = [ 'sh', 'bash', 'ksh', 'csh', 'zsh', 'tcsh' ]
 
@@ -62,15 +62,14 @@ shells = [ 'sh', 'bash', 'ksh', 'csh', 'zsh', 'tcsh' ]
 @click.option('--shell',    '-s', type=click.Choice(shells), metavar='<shell name>', default=get_shell())
 @click.option('--account',  '-a', type=str, metavar='<AWS account>')
 @click.option('--username', '-u', type=str, metavar='<AWS username>')
-@click.pass_context
-def cli(ctx, code, profile, expiry, shell, account, username):
+def cli(code, profile, expiry, shell, account, username):
   session = boto3.Session(profile_name=profile)
   sts = session.client('sts')
-  config = get_profile(ctx, profile)
+  config = get_profile(profile)
   device_arn = f"arn:aws:iam::{config['account']}:mfa/{config['username']}"
 
   token = CachedConfig(
-    ctx, profile,
+    profile,
     partial(sts.get_session_token,
       DurationSeconds = expiry,
       SerialNumber    = device_arn,
