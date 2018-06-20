@@ -100,11 +100,9 @@ def cli(ctx, code, profile, expiry, shell):
     )
   )
 
-  if token['ResponseMetadata']['HTTPStatusCode'] != 200:
-    ctx.fail(
-      f"Unable to obtain token. HTTP error code"
-      f" {token['ResponseMetadata']['HTTPStatusCode']}, exiting."
-    )
+  response_code = token['ResponseMetadata']['HTTPStatusCode']
+  if response_code != 200:
+    ctx.fail(f"Unable to obtain token. HTTP error code {response_code}, exiting.")
 
   credentials = token['Credentials']
   template = shell_templates[shells[shell]]
