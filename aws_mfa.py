@@ -1,5 +1,6 @@
 #!env python3
-# https://github.com/cwells/aws-mfa
+
+### https://github.com/cwells/aws-mfa
 
 import os
 import yaml
@@ -11,6 +12,9 @@ from datetime import datetime
 
 program = 'aws-mfa'
 
+###
+### CachedSession
+###
 class CachedSession(dict):
   '''caches session data until expiry, then prompts for new MFA code.
   '''
@@ -29,7 +33,9 @@ class CachedSession(dict):
 
     self.update(data)
 
-
+###
+### get_profile
+###
 def get_profile(ctx, profile):
   '''fetches requested profile and merges it with default profile.
   '''
@@ -43,24 +49,35 @@ def get_profile(ctx, profile):
   profile_config.update(config[profile])
   return profile_config
 
-
+###
+### get_shell
+###
 def get_shell():
   '''returns name of current shell.
   '''
   return psutil.Process().parent().name()
 
-cmd_format = {
-  'export {var}="{val}"'  : [ 'bash', 'fish', 'ksh', 'sh', 'zsh' ],
-  'setenv {var} "{val}"'  : [ 'csh', 'tcsh' ],
-  'set ::env({var}) {val}': [ 'tcl' ]
-}
+###
+### get_command_formats
+###
+def get_command_formats():
+  '''return hash of formats keyed by shell name
+  '''
+  formats = {
+    'export {var}="{val}"'  : [ 'bash', 'fish', 'ksh', 'sh', 'zsh' ],
+    'setenv {var} "{val}"'  : [ 'csh', 'tcsh' ],
+    'set ::env({var}) {val}': [ 'tcl' ]
+  }
+  return { sh: cmd
+    for cmd, shells in formats.items()
+      for sh in shells
+  }
 
-shell_cmd = { sh: cmd
-  for cmd, shells in cmd_format.items()
-    for sh in shells
-}
-
-shell = click.Choice(shell_cmd)
+###
+### gather info needed by cli
+###
+shell_cmd = get_command_formats()
+shells = click.Choice(shell_cmd)
 current_shell = get_shell()
 
 help = {
@@ -72,11 +89,14 @@ help = {
   ])
 }
 
+###
+### cli
+###
 @click.command()
-@click.option('--code',    '-c', type=str,   metavar='<MFA code>')
-@click.option('--profile', '-p', type=str,   metavar='<profile>', help=help['profile'], default='default')
-@click.option('--expiry',  '-e', type=int,   metavar='<seconds>', help=help['expiry'])
-@click.option('--shell',   '-s', type=shell, metavar='<shell>',   help=help['shell'])
+@click.option('--code',    '-c', type=str,    metavar='<MFA code>')
+@click.option('--profile', '-p', type=str,    metavar='<profile>', help=help['profile'], default='default')
+@click.option('--expiry',  '-e', type=int,    metavar='<seconds>', help=help['expiry'])
+@click.option('--shell',   '-s', type=shells, metavar='<shell>',   help=help['shell'])
 @click.pass_context
 def cli(ctx, code, profile, expiry, shell):
   def pick(*items):
@@ -119,6 +139,8 @@ def cli(ctx, code, profile, expiry, shell):
     }.items()
   ]))
 
-
+###
+### main
+###
 if __name__ == '__main__':
   cli()
