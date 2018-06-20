@@ -1,6 +1,5 @@
 #!env python3
-
-# Project: https://github.com/cwells/aws-mfa
+# https://github.com/cwells/aws-mfa
 
 import os
 import yaml
