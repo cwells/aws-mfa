@@ -79,16 +79,24 @@ help = {
 }
 
 @click.command()
-@click.option('--code',    '-c', type=str,                          metavar='<MFA code>')
-@click.option('--profile', '-p', type=str,   default='default',     metavar='<profile>', help=help['profile'])
-@click.option('--expiry',  '-e', type=int,   default=86400,         metavar='<seconds>', help=help['expiry'])
-@click.option('--shell',   '-s', type=shell, default=current_shell, metavar='<shell>',   help=help['shell'])
+@click.option('--code',    '-c', type=str,   metavar='<MFA code>')
+@click.option('--profile', '-p', type=str,   metavar='<profile>', help=help['profile'], default='default')
+@click.option('--expiry',  '-e', type=int,   metavar='<seconds>', help=help['expiry'])
+@click.option('--shell',   '-s', type=shell, metavar='<shell>',   help=help['shell'])
 @click.pass_context
 def cli(ctx, code, profile, expiry, shell):
+  def pick(*items):
+    '''return first truthy value from list.
+    '''
+    return next(i for i in items if i)
+
   session = boto3.Session(profile_name=profile)
   sts = session.client('sts')
 
   config = get_profile(ctx, profile)
+  expiry = pick(expiry, config.get('expiry'), 86400)
+  shell = pick(shell, config.get('shell', None), current_shell)
+
   device_arn = f"arn:aws:iam::{config['account']}:mfa/{config['username']}"
 
   token = CachedSession(
