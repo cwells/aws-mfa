@@ -59,11 +59,11 @@ shell_templates = {
 
 shells = {
   'bash': 'export',
-  'csh':  'setenv',
-  'ksh':  'export',
-  'sh':   'export',
+  'csh' : 'setenv',
+  'ksh' : 'export',
+  'sh'  : 'export',
   'tcsh': 'setenv',
-  'zsh':  'export'
+  'zsh' : 'export'
 }
 
 @click.command()
