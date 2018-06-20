@@ -18,10 +18,11 @@ Create `~/.aws/aws-mfa.yaml` with the following content:
 ```yaml
 ---
 default:
-  account: 1234567890
-  username: phil@veridiandynamics.com
-  aws_profile: production
-  expiry: 86400
+  account: 1234567890                  # required
+  username: phil@veridiandynamics.com  # required
+  aws_profile: production              # optional [default]
+  expiry: 3600                         # optional [86400]
+  shell: bash                          # optional [auto-detect]
 ```
 
 Because every profile inherits values from the `default` profile,
