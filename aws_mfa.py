@@ -80,9 +80,10 @@ shell_cmd = get_command_formats()
 shells = click.Choice(shell_cmd)
 current_shell = get_shell()
 help = {
-  'profile': '[%s]' % click.style('default', fg='blue'),
-  'expiry' : '[%s]' % click.style('86400', fg='blue'),
-  'shell'  : '[%s]' % '|'.join([
+  'profile'    : '[%s]' % click.style('default', fg='blue'),
+  'aws_profile': '[%s]' % click.style('default', fg='blue'),
+  'expiry'     : '[%s]' % click.style('86400', fg='blue'),
+  'shell'      : '[%s]' % '|'.join([
     (sh if sh != current_shell else click.style(sh, fg='blue'))
     for sh in shell_cmd
   ])
@@ -92,12 +93,13 @@ help = {
 ### cli
 ###
 @click.command()
-@click.option('--code',    '-c', type=str,    metavar='<MFA code>')
-@click.option('--profile', '-p', type=str,    metavar='<profile>', help=help['profile'], default='default')
-@click.option('--expiry',  '-e', type=int,    metavar='<seconds>', help=help['expiry'])
-@click.option('--shell',   '-s', type=shells, metavar='<shell>',   help=help['shell'])
+@click.option('--code',        '-c', type=str,    metavar='<MFA code>')
+@click.option('--profile',     '-p', type=str,    metavar='<profile>', help=help['profile'],     default='default')
+@click.option('--aws_profile', '-p', type=str,    metavar='<profile>', help=help['aws_profile'], default='default')
+@click.option('--expiry',      '-e', type=int,    metavar='<seconds>', help=help['expiry'])
+@click.option('--shell',       '-s', type=shells, metavar='<shell>',   help=help['shell'])
 @click.pass_context
-def cli(ctx, code, profile, expiry, shell):
+def cli(ctx, code, profile, aws_profile, expiry, shell):
   def pick(*items):
     '''return first truthy value from list.
     '''
@@ -105,8 +107,11 @@ def cli(ctx, code, profile, expiry, shell):
       if i: return i
 
   config  = get_profile(ctx, profile)
-  session = boto3.Session(profile_name=config['aws_profile'])
+  session = boto3.Session(
+    profile_name=pick(aws_profile, config.get('aws_profile', 'default'))
+  )
   sts     = session.client('sts')
+
   expiry  = pick(expiry, config.get('expiry'), 86400)
   shell   = pick(shell, config.get('shell', None), current_shell)
   device  = f"arn:aws:iam::{config['account']}:mfa/{config['username']}"
