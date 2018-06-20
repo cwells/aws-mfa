@@ -88,7 +88,8 @@ def cli(ctx, code, profile, expiry, shell):
   def pick(*items):
     '''return first truthy value from list.
     '''
-    return next(i for i in items if i)
+    for i in items:
+      if i: return i
 
   session = boto3.Session(profile_name=profile)
   sts = session.client('sts')
