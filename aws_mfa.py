@@ -50,7 +50,7 @@ def get_shell():
   return psutil.Process().parent().name()
 
 cmd_format = {
-  'export {var}="{val}"'  : [ 'bash', 'fish', 'ksh', 'sh', 'zsh'],
+  'export {var}="{val}"'  : [ 'bash', 'fish', 'ksh', 'sh', 'zsh' ],
   'setenv {var} "{val}"'  : [ 'csh', 'tcsh' ],
   'set ::env({var}) {val}': [ 'tcl' ]
 }
