@@ -4,7 +4,6 @@
 
 import sys
 import os
-import string
 import yaml
 import click
 import boto3
@@ -79,15 +78,15 @@ def cli(ctx, code, profile, expiry, shell, account, username):
     )
   )
 
-  shell_template = string.Template({
-    'csh' : 'setenv $var "$val"',
-    'tcsh': 'setenv $var "$val"'
-  }.get(shell, 'export $var="$val"'))
+  shell_template = {
+    'csh' : 'setenv {var} "{val}"',
+    'tcsh': 'setenv {var} "{val}"'
+  }.get(shell, 'export {var}="{val}"')
 
   if token['ResponseMetadata']['HTTPStatusCode'] == 200:
     credentials = token['Credentials']
     print('\n'.join([
-      shell_template.substitute(var=var, val=val) for (var, val) in {
+      str.format(shell_template, var=var, val=val) for (var, val) in {
         'AWS_PROFILE'          : config['aws_profile'],
         'AWS_ACCESS_KEY_ID'    : credentials['AccessKeyId'],
         'AWS_SECRET_ACCESS_KEY': credentials['SecretAccessKey'],
