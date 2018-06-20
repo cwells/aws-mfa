@@ -60,8 +60,8 @@ sh_type = {
   'csh':  'setenv',
   'ksh':  'export',
   'sh':   'export',
-  'tcsh': 'setenv'
-  'zsh':  'export',
+  'tcsh': 'setenv',
+  'zsh':  'export'
 }
 
 @click.command()
