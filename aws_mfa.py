@@ -32,7 +32,7 @@ class CachedSession(dict):
 
 
 def get_profile(ctx, profile):
-  '''fetches config for named profile, merges it with `default` profile, and returns result.
+  '''fetches requested profile and merges it with default profile.
   '''
   config_file = os.path.expanduser(f'~/.aws/{program}.yaml')
   try:
