@@ -66,11 +66,19 @@ shells = {
   'zsh' : 'export'
 }
 
+shell = click.Choice(shells)
+current_shell = get_shell()
+help = {
+  'profile': '[%s]' % click.style('default', fg='blue'),
+  'expiry' : '[%s]' % click.style('86400', fg='blue'),
+  'shell'  : '[%s]' % '|'.join([ (sh if sh != current_shell else click.style(sh, fg='blue')) for sh in shells ])
+}
+
 @click.command()
-@click.option('--code',    '-c', type=str, metavar='<MFA code>')
-@click.option('--profile', '-p', type=str, metavar='<profile>', default='default')
-@click.option('--expiry',  '-e', type=int, metavar='<seconds>', default=86400)
-@click.option('--shell',   '-s', type=click.Choice(shells), metavar='<shell name>', default=get_shell())
+@click.option('--code',    '-c', type=str,                          metavar='<MFA code>')
+@click.option('--profile', '-p', type=str,   default='default',     metavar='<profile>', help=help['profile'])
+@click.option('--expiry',  '-e', type=int,   default=86400,         metavar='<seconds>', help=help['expiry'])
+@click.option('--shell',   '-s', type=shell, default=current_shell, metavar='<shell>',   help=help['shell'])
 @click.pass_context
 def cli(ctx, code, profile, expiry, shell):
   session = boto3.Session(profile_name=profile)
@@ -88,25 +96,24 @@ def cli(ctx, code, profile, expiry, shell):
     )
   )
 
-  if token['ResponseMetadata']['HTTPStatusCode'] == 200:
-    credentials = token['Credentials']
-    template = shell_templates[shells[shell]]
-
-    print('\n'.join([
-      str.format(template, var=var, val=val)
-      for var, val in {
-        'AWS_PROFILE'          : config['aws_profile'],
-        'AWS_ACCESS_KEY_ID'    : credentials['AccessKeyId'],
-        'AWS_SECRET_ACCESS_KEY': credentials['SecretAccessKey'],
-        'AWS_SESSION_TOKEN'    : credentials['SessionToken']
-      }.items()
-    ]))
-
-  else:
+  if token['ResponseMetadata']['HTTPStatusCode'] != 200:
     ctx.fail(
       f"Unable to obtain token. HTTP error code"
       f" {token['ResponseMetadata']['HTTPStatusCode']}, exiting."
     )
+
+  credentials = token['Credentials']
+  template = shell_templates[shells[shell]]
+
+  print('\n'.join([
+    str.format(template, var=var, val=val)
+    for var, val in {
+      'AWS_PROFILE'          : config['aws_profile'],
+      'AWS_ACCESS_KEY_ID'    : credentials['AccessKeyId'],
+      'AWS_SECRET_ACCESS_KEY': credentials['SecretAccessKey'],
+      'AWS_SESSION_TOKEN'    : credentials['SessionToken']
+    }.items()
+  ]))
 
 
 if __name__ == '__main__':
