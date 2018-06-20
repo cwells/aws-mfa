@@ -49,32 +49,26 @@ def get_shell():
   '''
   return psutil.Process().parent().name()
 
-
-shell_templates = {
-  'export': 'export {var}="{val}"',
-  'setenv': 'setenv {var} "{val}"',
-  'tcl'   : 'set ::env({var}) {val}'
+cmd_format = {
+  'export {var}="{val}"'  : [ 'bash', 'fish', 'ksh', 'sh', 'zsh'],
+  'setenv {var} "{val}"'  : [ 'csh', 'tcsh' ],
+  'set ::env({var}) {val}': [ 'tcl' ]
 }
 
-shells = {
-  'bash' : 'export',
-  'csh'  : 'setenv',
-  'fish' : 'export',
-  'ksh'  : 'export',
-  'sh'   : 'export',
-  'tcsh' : 'setenv',
-  'tclsh': 'tcl',
-  'zsh'  : 'export'
+shell_cmd = { sh: cmd
+  for cmd, shells in cmd_format.items()
+    for sh in shells
 }
 
-shell = click.Choice(shells)
+shell = click.Choice(shell_cmd)
 current_shell = get_shell()
+
 help = {
   'profile': '[%s]' % click.style('default', fg='blue'),
   'expiry' : '[%s]' % click.style('86400', fg='blue'),
   'shell'  : '[%s]' % '|'.join([
     (sh if sh != current_shell else click.style(sh, fg='blue'))
-    for sh in shells
+    for sh in shell_cmd
   ])
 }
 
@@ -114,10 +108,9 @@ def cli(ctx, code, profile, expiry, shell):
     ctx.fail(f"Unable to obtain token. Status code {response_code}, exiting.")
 
   credentials = token['Credentials']
-  template = shell_templates[shells[shell]]
 
   print('\n'.join([
-    str.format(template, var=var, val=val)
+    str.format(shell_cmd[shell], var=var, val=val)
     for var, val in {
       'AWS_PROFILE'          : config['aws_profile'],
       'AWS_ACCESS_KEY_ID'    : credentials['AccessKeyId'],
