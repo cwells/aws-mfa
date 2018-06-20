@@ -41,7 +41,6 @@ def get_profile(ctx, profile):
 
   profile_config = config['default']
   profile_config.update(config[profile])
-
   return profile_config
 
 
@@ -54,7 +53,7 @@ def get_shell():
 shell_templates = {
   'export': 'export {var}="{val}"',
   'setenv': 'setenv {var} "{val}"',
-  'tcl':    'set ::env({var}) {val}'
+  'tcl'   : 'set ::env({var}) {val}'
 }
 
 shells = {
