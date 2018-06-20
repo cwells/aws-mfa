@@ -71,7 +71,10 @@ current_shell = get_shell()
 help = {
   'profile': '[%s]' % click.style('default', fg='blue'),
   'expiry' : '[%s]' % click.style('86400', fg='blue'),
-  'shell'  : '[%s]' % '|'.join([ (sh if sh != current_shell else click.style(sh, fg='blue')) for sh in shells ])
+  'shell'  : '[%s]' % '|'.join([
+    (sh if sh != current_shell else click.style(sh, fg='blue'))
+    for sh in shells
+  ])
 }
 
 @click.command()
