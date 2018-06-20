@@ -30,6 +30,7 @@ class CachedConfig(dict):
 
     self.update(data)
 
+
 def get_profile(ctx, profile):
   '''fetches config for named profile, merges it
   with `default` profile, and returns result.
@@ -45,17 +46,19 @@ def get_profile(ctx, profile):
 
   return profile_config
 
+
 def get_shell():
   '''returns name of current shell.
   '''
   return psutil.Process().parent().name()
 
-sh_template = {
+
+shell_templates = {
   'export': 'export {var}="{val}"',
   'setenv': 'setenv {var} "{val}"'
 }
 
-sh_type = {
+shells = {
   'bash': 'export',
   'csh':  'setenv',
   'ksh':  'export',
@@ -68,7 +71,7 @@ sh_type = {
 @click.option('--code',    '-c', type=str, metavar='<MFA code>')
 @click.option('--profile', '-p', type=str, metavar='<profile>', default='default')
 @click.option('--expiry',  '-e', type=int, metavar='<seconds>', default=86400)
-@click.option('--shell',   '-s', type=click.Choice(sh_type), metavar='<shell name>', default=get_shell())
+@click.option('--shell',   '-s', type=click.Choice(shells), metavar='<shell name>', default=get_shell())
 @click.pass_context
 def cli(ctx, code, profile, expiry, shell):
   session = boto3.Session(profile_name=profile)
@@ -85,7 +88,7 @@ def cli(ctx, code, profile, expiry, shell):
     )
   )
 
-  template = sh_template[sh_type[shell]]
+  template = shell_templates[shells[shell]]
 
   if token['ResponseMetadata']['HTTPStatusCode'] == 200:
     credentials = token['Credentials']
@@ -98,6 +101,7 @@ def cli(ctx, code, profile, expiry, shell):
         'AWS_SESSION_TOKEN'    : credentials['SessionToken']
       }.items()
     ]))
+
 
 if __name__ == '__main__':
   cli()
