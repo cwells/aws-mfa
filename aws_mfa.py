@@ -104,20 +104,18 @@ def cli(ctx, code, profile, expiry, shell):
     for i in items:
       if i: return i
 
-  session = boto3.Session(profile_name=profile)
-  sts = session.client('sts')
-
-  config = get_profile(ctx, profile)
-  expiry = pick(expiry, config.get('expiry'), 86400)
-  shell = pick(shell, config.get('shell', None), current_shell)
-
-  device_arn = f"arn:aws:iam::{config['account']}:mfa/{config['username']}"
+  config  = get_profile(ctx, profile)
+  session = boto3.Session(profile_name=config['aws_profile'])
+  sts     = session.client('sts')
+  expiry  = pick(expiry, config.get('expiry'), 86400)
+  shell   = pick(shell, config.get('shell', None), current_shell)
+  device  = f"arn:aws:iam::{config['account']}:mfa/{config['username']}"
 
   token = CachedSession(
     profile,
     partial(sts.get_session_token,
       DurationSeconds = expiry,
-      SerialNumber    = device_arn,
+      SerialNumber    = device,
       TokenCode       = code
     )
   )
