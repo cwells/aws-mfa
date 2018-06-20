@@ -59,6 +59,7 @@ shell_templates = {
 shells = {
   'bash' : 'export',
   'csh'  : 'setenv',
+  'fish' : 'export',
   'ksh'  : 'export',
   'sh'   : 'export',
   'tcsh' : 'setenv',
