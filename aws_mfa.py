@@ -53,16 +53,18 @@ def get_shell():
 
 shell_templates = {
   'export': 'export {var}="{val}"',
-  'setenv': 'setenv {var} "{val}"'
+  'setenv': 'setenv {var} "{val}"',
+  'tcl':    'set ::env({var}) {val}'
 }
 
 shells = {
-  'bash': 'export',
-  'csh' : 'setenv',
-  'ksh' : 'export',
-  'sh'  : 'export',
-  'tcsh': 'setenv',
-  'zsh' : 'export'
+  'bash' : 'export',
+  'csh'  : 'setenv',
+  'ksh'  : 'export',
+  'sh'   : 'export',
+  'tcsh' : 'setenv',
+  'tclsh': 'tcl',
+  'zsh'  : 'export'
 }
 
 shell = click.Choice(shells)
