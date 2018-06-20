@@ -12,7 +12,7 @@ from datetime import datetime
 
 program = 'aws-mfa'
 
-class CachedConfig(dict):
+class CachedSession(dict):
   '''caches session data until expiry, then prompts for new code.
   '''
   def __init__(self, profile, source):
@@ -76,10 +76,11 @@ shells = {
 def cli(ctx, code, profile, expiry, shell):
   session = boto3.Session(profile_name=profile)
   sts = session.client('sts')
+
   config = get_profile(ctx, profile)
   device_arn = f"arn:aws:iam::{config['account']}:mfa/{config['username']}"
 
-  token = CachedConfig(
+  token = CachedSession(
     profile,
     partial(sts.get_session_token,
       DurationSeconds = expiry,
@@ -88,10 +89,10 @@ def cli(ctx, code, profile, expiry, shell):
     )
   )
 
-  template = shell_templates[shells[shell]]
-
   if token['ResponseMetadata']['HTTPStatusCode'] == 200:
     credentials = token['Credentials']
+    template = shell_templates[shells[shell]]
+
     print('\n'.join([
       str.format(template, var=var, val=val)
       for var, val in {
@@ -101,6 +102,12 @@ def cli(ctx, code, profile, expiry, shell):
         'AWS_SESSION_TOKEN'    : credentials['SessionToken']
       }.items()
     ]))
+
+  else:
+    ctx.fail(
+      f"Unable to obtain token. HTTP error code"
+      f" {token['ResponseMetadata']['HTTPStatusCode']}, exiting."
+    )
 
 
 if __name__ == '__main__':
