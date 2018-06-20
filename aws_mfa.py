@@ -13,7 +13,7 @@ from datetime import datetime
 program = 'aws-mfa'
 
 class CachedSession(dict):
-  '''caches session data until expiry, then prompts for new code.
+  '''caches session data until expiry, then prompts for new MFA code.
   '''
   def __init__(self, profile, source):
     cache_file = os.path.expanduser(f'~/.aws/.{program}-{profile}.cache')
@@ -32,8 +32,7 @@ class CachedSession(dict):
 
 
 def get_profile(ctx, profile):
-  '''fetches config for named profile, merges it
-  with `default` profile, and returns result.
+  '''fetches config for named profile, merges it with `default` profile, and returns result.
   '''
   config_file = os.path.expanduser(f'~/.aws/{program}.yaml')
   try:
