@@ -66,7 +66,7 @@ def get_command_formats():
   formats = {
     'export {var}="{val}"'  : [ 'bash', 'fish', 'ksh', 'sh', 'zsh' ],
     'setenv {var} "{val}"'  : [ 'csh', 'tcsh' ],
-    'set ::env({var}) {val}': [ 'tcl' ]
+    'set ::env({var}) {val}': [ 'tclsh' ]
   }
   return { sh: cmd
     for cmd, shells in formats.items()
