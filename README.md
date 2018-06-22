@@ -52,6 +52,6 @@ a second time, and will instead reuse the existing session.
 
 Cache data is stored under `~/.aws/.aws-mfa.${profile}.cache`.
 
-Because the profile is used as part of the cache name, any number of  
-concurrent sessions with any number of unique profiles is supported 
+Because the profile is used as part of the cache name, any number of
+concurrent sessions with any number of unique profiles is supported
 (in different shells, of course).
