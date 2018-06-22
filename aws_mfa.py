@@ -77,15 +77,14 @@ def get_command_formats():
 ### gather info needed by cli
 ###
 shell_cmd = get_command_formats()
-shells = click.Choice(shell_cmd)
+valid_shell = click.Choice(shell_cmd)
 current_shell = get_shell()
 help = {
-  'profile'    : '[%s]' % click.style('default', fg='blue'),
-  'aws_profile': '[%s]' % click.style('default', fg='blue'),
-  'expiry'     : '[%s]' % click.style('86400', fg='blue'),
-  'shell'      : '[%s]' % '|'.join([
+  'profile': '[%s]' % click.style('default', fg='blue'),
+  'expiry' : '[%s]' % click.style('86400', fg='blue'),
+  'shell'  : '[%s]' % '|'.join([
     (sh if sh != current_shell else click.style(sh, fg='blue'))
-    for sh in shell_cmd
+    for sh in sorted(shell_cmd)
   ])
 }
 
@@ -93,11 +92,11 @@ help = {
 ### cli
 ###
 @click.command()
-@click.option('--code',        '-c', type=str,    metavar='<MFA code>')
-@click.option('--profile',     '-p', type=str,    metavar='<profile>', help=help['profile'],     default='default')
-@click.option('--aws_profile', '-p', type=str,    metavar='<profile>', help=help['aws_profile'], default='default')
-@click.option('--expiry',      '-e', type=int,    metavar='<seconds>', help=help['expiry'])
-@click.option('--shell',       '-s', type=shells, metavar='<shell>',   help=help['shell'])
+@click.option('--code',        '-c', type=click.STRING, metavar='<MFA code>')
+@click.option('--profile',     '-p', type=click.STRING, metavar='<profile>', help=help['profile'], default='default')
+@click.option('--aws_profile', '-p', type=click.STRING, metavar='<profile>', help=help['profile'], default='default')
+@click.option('--expiry',      '-e', type=click.INT,    metavar='<seconds>', help=help['expiry'])
+@click.option('--shell',       '-s', type=valid_shell,  metavar='<shell>',   help=help['shell'])
 @click.pass_context
 def cli(ctx, code, profile, aws_profile, expiry, shell):
   def pick(*items):
