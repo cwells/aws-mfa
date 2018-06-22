@@ -16,6 +16,10 @@ python3 setup.py develop --user
 ```
 
 ### Configuration
+*The following presumes you have a functional AWS CLI configuration. If you aren't
+sure, please refer to the [documentation][cli-getting-started]*.
+
+
 Create `~/.aws/aws-mfa.yaml` with a `default` profile:
 
 ```yaml
@@ -57,3 +61,7 @@ Cache data is stored under `~/.aws/.aws-mfa.${profile}.cache`.
 Because the profile is used as part of the cache name, any number of
 concurrent sessions with any number of unique profiles is supported
 (in different shells, of course).
+
+
+[cli-getting-started]: https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html
+
