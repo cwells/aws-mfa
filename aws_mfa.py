@@ -61,7 +61,7 @@ def get_shell():
 ### get_command_formats
 ###
 def get_command_formats():
-  '''return hash of formats keyed by shell name
+  '''return hash of formats keyed by shell name.
   '''
   formats = {
     'export {var}="{val}"'  : [ 'bash', 'fish', 'ksh', 'sh', 'zsh' ],
