@@ -24,7 +24,7 @@ Create `~/.aws/aws-mfa.yaml` with a `default` profile:
 
 ```yaml
 ---
-default:
+default :
   account    : 1234567890                 # aws account id  required
   username   : phil@veridiandynamics.com  # iam username    required
   aws_profile: default                    # aws profile     optional  [default]
