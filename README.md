@@ -21,11 +21,11 @@ Create `~/.aws/aws-mfa.yaml` with a `default` profile:
 ```yaml
 ---
 default:
-  account: 1234567890                  # required
-  username: phil@veridiandynamics.com  # required
-  aws_profile: production              # optional [default]
-  expiry: 3600                         # optional [86400]
-  shell: bash                          # optional [auto-detect]
+  account: 1234567890                  # aws account id  required
+  username: phil@veridiandynamics.com  # iam username    required
+  aws_profile: production              # aws profile     optional  [default]
+  expiry: 3600                         # ttl in seconds  optional  [86400]
+  shell: bash                          # output format   optional  [auto-detect]
 ```
 You can define as many profiles as you need, but there must be 
 a `default` profile at minimum.
