@@ -8,13 +8,16 @@ Python 3.6 or later.
 ```bash
 python3 setup.py install --user
 ```
+
 or for development mode:
+
 ```bash
 python3 setup.py develop --user
 ```
 
 ### Configuration
 Create `~/.aws/aws-mfa.yaml` with the following information:
+
 ```yaml
 ---
 default:
@@ -25,8 +28,9 @@ default:
   shell: bash                          # optional [auto-detect]
 ```
 
-Because every profile inherits values from the `default` profile,
+Because every profile inherits values from the `default` profile 
 you need only specify the differences in additional profiles:
+
 ```yaml
 staging:
   account: 3456789012
@@ -34,7 +38,8 @@ staging:
 ```
 
 ### Usage
-In terminal, type:
+In a terminal, type:
+
 ```bash
 $ eval $( aws-mfa )                       # will prompt for code
 $ eval $( aws-mfa -c 123456 -p staging )  # specify code and profile
@@ -47,5 +52,6 @@ a second time, and will instead reuse the existing session.
 
 Cache data is stored under `~/.aws/.aws-mfa.${profile}.cache`.
 
-Because the profile is used as part of the cache name, multiple concurrent
-sessions with unique profiles are supported (in different shells, of course).
+Because the profile is used as part of the cache name, any number of  
+concurrent sessions with any number of unique profiles is supported 
+(in different shells, of course).
