@@ -17,7 +17,7 @@ python3 setup.py develop --user
 
 ### Configuration
 > The following presumes you have a functional AWS CLI configuration. If you aren't
-certain, please refer to the [official documentation][cli-getting-started].
+sure, please refer to the [official documentation][cli-getting-started].
 
 
 Create `~/.aws/aws-mfa.yaml` with a `default` profile:
@@ -25,30 +25,48 @@ Create `~/.aws/aws-mfa.yaml` with a `default` profile:
 ```yaml
 ---
 default:
-  account: 1234567890                  # aws account id  required
-  username: phil@veridiandynamics.com  # iam username    required
-  aws_profile: production              # aws profile     optional  [default]
-  expiry: 3600                         # ttl in seconds  optional  [86400]
-  shell: bash                          # output format   optional  [auto-detect]
+  account    : 1234567890                 # aws account id  required
+  username   : phil@veridiandynamics.com  # iam username    required
+  aws_profile: default                    # aws profile     optional  [default]
+  expiry     : 86400                      # ttl in seconds  optional  [86400]
+  shell      : bash                       # output format   optional  [auto-detect]
 ```
-You can define as many profiles as you need, but there must be
-a `default` profile at minimum.
+You can define as many profiles as you need. If no profile is selected
+via the `--profile` option, then the `default` profile is used.
 
-Because every profile inherits values from the `default` profile
-you need only specify the differences in additional profiles:
+Profiles can inherit from other profiles (which in turn can inherit from
+other profiles in a chain):
 
 ```yaml
-staging:
-  account: 3456789012
-  aws_profile: staging
+default :
+  username : phil@veridiandynamics.com
+  expiry   : 28800
+
+production :
+  inherits : default
+  account  : 111111111111
+
+production-us :
+  inherits    : production-default
+  aws_profile : production-us
+
+production-eu :
+  inherits    : production-default
+  aws_profile : production-eu
+
+staging :
+  inherits    : default
+  account     : 222222222222
+  aws_profile : staging
+  expiry      : 86400
 ```
 
 ### Usage
-In a terminal, type:
+In a shell, run:
 
 ```bash
-$ eval $( aws-mfa )                       # will prompt for code
-$ eval $( aws-mfa -c 123456 -p staging )  # specify code and profile
+$ eval $(aws-mfa)                       # will prompt for code
+$ eval $(aws-mfa -c 123456 -p staging)  # specify code and profile
 ```
 
 ### Notes on caching

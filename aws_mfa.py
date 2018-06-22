@@ -8,6 +8,7 @@ import click
 import boto3
 import psutil
 from functools import partial
+from collections import ChainMap
 from datetime import datetime
 
 program = 'aws-mfa'
@@ -37,7 +38,8 @@ class CachedSession(dict):
 ### get_profile
 ###
 def get_profile(ctx, profile):
-  '''fetches requested profile and merges it with default profile.
+  '''fetches requested profile and merges it with any specified
+  base profiles.
   '''
   config_file = os.path.expanduser(f'~/.aws/{program}.yaml')
   try:
@@ -45,9 +47,15 @@ def get_profile(ctx, profile):
   except:
     ctx.fail(f"Unable to open {config_file}, exiting.")
 
-  profile_config = config['default']
-  profile_config.update(config[profile])
-  return profile_config
+  profiles = [ config[profile] ]
+  while True:
+    try:
+      base_profile = profiles[-1]['inherits']
+    except KeyError:
+      break
+    profiles.append(config[base_profile])
+
+  return dict(ChainMap(*profiles))
 
 ###
 ### get_shell
@@ -94,7 +102,7 @@ help = {
 @click.command()
 @click.option('--code',        '-c', type=click.STRING, metavar='<MFA code>')
 @click.option('--profile',     '-p', type=click.STRING, metavar='<profile>', help=help['profile'], default='default')
-@click.option('--aws_profile', '-p', type=click.STRING, metavar='<profile>', help=help['profile'], default='default')
+@click.option('--aws_profile', '-a', type=click.STRING, metavar='<profile>', help=help['profile'], default='default')
 @click.option('--expiry',      '-e', type=click.INT,    metavar='<seconds>', help=help['expiry'])
 @click.option('--shell',       '-s', type=valid_shell,  metavar='<shell>',   help=help['shell'])
 @click.pass_context
