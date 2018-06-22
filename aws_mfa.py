@@ -1,4 +1,4 @@
-#!env python3
+#!/bin/env python3
 
 ### https://github.com/cwells/aws-mfa
 
@@ -108,13 +108,13 @@ def cli(ctx, code, profile, aws_profile, expiry, shell):
 
   config  = get_profile(ctx, profile)
   session = boto3.Session(
-    profile_name=pick(aws_profile, config.get('aws_profile', 'default'))
+    profile_name = pick(aws_profile, config.get('aws_profile', 'default'))
   )
   sts     = session.client('sts')
 
-  expiry  = pick(expiry, config.get('expiry'), 86400)
-  shell   = pick(shell, config.get('shell', None), current_shell)
-  device  = f"arn:aws:iam::{config['account']}:mfa/{config['username']}"
+  expiry = pick(expiry, config.get('expiry'), 86400)
+  shell  = pick(shell, config.get('shell', None), current_shell)
+  device = f"arn:aws:iam::{config['account']}:mfa/{config['username']}"
 
   token = CachedSession(
     profile,
