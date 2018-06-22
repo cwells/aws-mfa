@@ -1,5 +1,5 @@
 # aws-mfa
-Python script for managing AWS MFA sessions.
+Python script for managing multiple AWS MFA sessions.
 
 ### Requirements
 Python 3.6 or later.
