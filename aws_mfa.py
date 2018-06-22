@@ -47,14 +47,13 @@ def get_profile(ctx, profile):
   except:
     ctx.fail(f"Unable to open {config_file}, exiting.")
 
-  # build a list of profiles based on `inherits` key...
   profiles = [ config[profile] ]
   while True:
-    try: # append the parent of the last profile
+    try: # append the parent of the last profile to list
       profiles.append(config[profiles[-1]['inherits']])
-    except KeyError: # nothing to inherit
+    except KeyError:
       break
-  # ...then returned the merged list the end
+  # return the merged dictionaries
   return dict(ChainMap(*profiles))
 
 ###
