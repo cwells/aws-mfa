@@ -49,11 +49,11 @@ def get_profile(ctx, profile):
 
   profiles = [ config[profile] ]
   while True:
-    try:
-      base_profile = profiles[-1]['inherits']
-    except KeyError:
+    p = profiles[-1]
+    if 'inherits' in p:
+      profiles.append(config[p['inherits']])
+    else:
       break
-    profiles.append(config[base_profile])
 
   return dict(ChainMap(*profiles))
 
