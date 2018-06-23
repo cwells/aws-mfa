@@ -35,7 +35,7 @@ You can define as many profiles as you need. If no profile is selected
 via the `--profile` option, then the `default` profile is used.
 
 Profiles can inherit from other profiles (which in turn can inherit from
-other profiles in a chain):
+other profiles _ad infinitum_):
 
 ```yaml
 default :
