@@ -101,7 +101,7 @@ help = {
 @click.command()
 @click.option('--code',        '-c', type=click.STRING, metavar='<MFA code>')
 @click.option('--profile',     '-p', type=click.STRING, metavar='<profile>', help=help['profile'], default='default')
-@click.option('--aws_profile', '-a', type=click.STRING, metavar='<profile>', help=help['profile'], default='default')
+@click.option('--aws_profile', '-a', type=click.STRING, metavar='<profile>', help=help['profile'], default=None)
 @click.option('--expiry',      '-e', type=click.INT,    metavar='<seconds>', help=help['expiry'])
 @click.option('--shell',       '-s', type=valid_shell,  metavar='<shell>',   help=help['shell'])
 @click.pass_context
@@ -113,9 +113,8 @@ def cli(ctx, code, profile, aws_profile, expiry, shell):
       if i: return i
 
   config  = get_profile(ctx, profile)
-  session = boto3.Session(
-    profile_name = pick(aws_profile, config.get('aws_profile', 'default'))
-  )
+  profile_name = pick(aws_profile, config.get('aws_profile', 'default'))
+  session = boto3.Session(profile_name = profile_name)
   sts     = session.client('sts')
 
   expiry = pick(expiry, config.get('expiry'), 86400)
@@ -140,7 +139,7 @@ def cli(ctx, code, profile, aws_profile, expiry, shell):
   print('\n'.join([
     str.format(shell_cmd[shell], var=var, val=val)
     for var, val in {
-      'AWS_PROFILE'          : config['aws_profile'],
+      'AWS_PROFILE'          : profile_name,
       'AWS_ACCESS_KEY_ID'    : credentials['AccessKeyId'],
       'AWS_SECRET_ACCESS_KEY': credentials['SecretAccessKey'],
       'AWS_SESSION_TOKEN'    : credentials['SessionToken']
