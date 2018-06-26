@@ -113,8 +113,8 @@ def cli(ctx, code, profile, aws_profile, expiry, shell):
       if i: return i
 
   config  = get_profile(ctx, profile)
-  profile_name = pick(aws_profile, config.get('aws_profile', 'default'))
-  session = boto3.Session(profile_name = profile_name)
+  aws_profile = pick(aws_profile, config.get('aws_profile', 'default'))
+  session = boto3.Session(profile_name = aws_profile)
   sts     = session.client('sts')
 
   expiry = pick(expiry, config.get('expiry'), 86400)
@@ -139,7 +139,7 @@ def cli(ctx, code, profile, aws_profile, expiry, shell):
   print('\n'.join([
     str.format(shell_cmd[shell], var=var, val=val)
     for var, val in {
-      'AWS_PROFILE'          : profile_name,
+      'AWS_PROFILE'          : aws_profile,
       'AWS_ACCESS_KEY_ID'    : credentials['AccessKeyId'],
       'AWS_SECRET_ACCESS_KEY': credentials['SecretAccessKey'],
       'AWS_SESSION_TOKEN'    : credentials['SessionToken']
