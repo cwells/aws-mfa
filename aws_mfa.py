@@ -101,7 +101,7 @@ help = {
 @click.command()
 @click.option('--code',        '-c', type=click.STRING, metavar='<MFA code>')
 @click.option('--profile',     '-p', type=click.STRING, metavar='<profile>', help=help['profile'], default='default')
-@click.option('--aws_profile', '-a', type=click.STRING, metavar='<profile>', help=help['profile'], default=None)
+@click.option('--aws_profile', '-a', type=click.STRING, metavar='<profile>', help=help['profile'])
 @click.option('--expiry',      '-e', type=click.INT,    metavar='<seconds>', help=help['expiry'])
 @click.option('--shell',       '-s', type=valid_shell,  metavar='<shell>',   help=help['shell'])
 @click.pass_context
