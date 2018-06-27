@@ -47,11 +47,11 @@ production :
   account  : 111111111111
 
 production-us :
-  inherits    : production-default
+  inherits    : production
   aws_profile : production-us
 
 production-eu :
-  inherits    : production-default
+  inherits    : production
   aws_profile : production-eu
 
 staging :
