@@ -113,12 +113,12 @@ def cli(ctx, code, profile, aws_profile, expiry, shell):
       if i: return i
 
   config  = get_profile(ctx, profile)
-  aws_profile = pick(aws_profile, config.get('aws_profile', 'default'))
+  aws_profile = pick(aws_profile, config.get('aws_profile'), 'default')
   session = boto3.Session(profile_name = aws_profile)
   sts     = session.client('sts')
 
   expiry = pick(expiry, config.get('expiry'), 86400)
-  shell  = pick(shell, config.get('shell', None), current_shell)
+  shell  = pick(shell, config.get('shell'), current_shell)
   device = f"arn:aws:iam::{config['account']}:mfa/{config['username']}"
 
   token = CachedSession(
