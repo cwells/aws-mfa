@@ -24,7 +24,7 @@ class CachedSession(dict):
     os.umask(0o0077) # 0600
     with open(cache_file, 'a+') as cached_data:
       cached_data.seek(0)
-      data = yaml.load(cached_data)
+      data = yaml.load(cached_data, Loader=yaml.FullLoader)
 
       if not data or datetime.utcnow() > data['Credentials']['Expiration']:
         code = click.prompt('MFA code', type=str, err=True)
@@ -43,7 +43,7 @@ def get_profile(ctx, profile):
   '''
   config_file = os.path.expanduser(f'~/.aws/{program}.yaml')
   try:
-    config = yaml.load(open(config_file, 'r'))
+    config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
   except:
     ctx.fail(f"Unable to open {config_file}, exiting.")
 
