@@ -9,7 +9,7 @@ import boto3
 import psutil
 from functools import partial
 from collections import ChainMap
-from datetime import datetime
+from datetime import datetime, timezone
 
 program = 'aws-mfa'
 
@@ -26,7 +26,7 @@ class CachedSession(dict):
       cached_data.seek(0)
       data = yaml.load(cached_data, Loader=yaml.FullLoader)
 
-      if not data or datetime.utcnow() > data['Credentials']['Expiration']:
+      if not data or datetime.utcnow().replace(tzinfo=timezone.utc) > data['Credentials']['Expiration']:
         code = click.prompt('MFA code', type=str, err=True)
         data = source(TokenCode=code)
         cached_data.seek(0)
